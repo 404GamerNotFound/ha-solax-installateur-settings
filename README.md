@@ -10,6 +10,8 @@ Copy the `custom_components/solax_installateur_settings` folder to your Home Ass
 
 Use the Home Assistant UI to add the **Solax Installer Settings** integration and provide the inverter host and installer password.
 
+After installation, open the integration options to adjust the host or password and to send installer parameters via a simple form. Enter the setting name and value to apply changes directly to the inverter.
+
 ## Services
 
 The integration exposes a service to change an installer parameter:
