@@ -25,7 +25,7 @@ Integración personalizada de Home Assistant para gestionar los ajustes de insta
 
 1. En Home Assistant ve a **Configuración → Dispositivos y Servicios → Agregar integración**.
 2. Selecciona `Solax Installer Settings` e introduce la dirección IP/nombre de host y la contraseña de instalador del inversor.
-3. Tras la configuración, el host o la contraseña se pueden actualizar mediante **Configurar** en la integración. Los parámetros de instalador disponibles se cargan directamente desde el inversor y se muestran en una lista desplegable con el valor actual, lo que permite cambiar ajustes sin conocer la clave. De forma predeterminada la integración funciona en modo *solo lectura* para evitar cambios accidentales; puede desactivarse en las opciones de la integración para permitir modificaciones.
+3. Tras la configuración, el host o la contraseña se pueden actualizar mediante **Configurar** en la integración. Los parámetros de instalador disponibles se cargan directamente desde el inversor y se muestran en una lista desplegable con nombres legibles y el valor actual, lo que permite cambiar ajustes sin conocer la clave. De forma predeterminada la integración funciona en modo *solo lectura* para evitar cambios accidentales; puede desactivarse en las opciones de la integración para permitir modificaciones.
 
 ## Servicios
 
@@ -34,7 +34,7 @@ La integración proporciona servicios para obtener y establecer parámetros de i
 ```yaml
 service: solax_installateur_settings.set_installer_setting
 data:
-  setting: feed_in_limit
+  setting: Feed-in Limit
   value: 50
   confirm: true
   # host: 192.168.1.100  # opcional, necesario cuando se usan varios inversores

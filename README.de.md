@@ -25,7 +25,7 @@ Benutzerdefinierte Home Assistant-Integration zum Verwalten von Installateur-Ein
 
 1. In Home Assistant **Einstellungen → Geräte & Dienste → Integration hinzufügen** wählen.
 2. `Solax Installer Settings` auswählen und die IP-Adresse/den Hostnamen sowie das Installateur-Passwort des Wechselrichters eingeben.
-3. Nach der Einrichtung kann über **Konfigurieren** in der Integration der Host oder das Passwort angepasst werden. Die verfügbaren Installateur-Parameter werden direkt vom Wechselrichter geladen und in einer Auswahlliste inklusive des aktuellen Wertes angezeigt, sodass Einstellungen geändert werden können, ohne den Schlüssel zu kennen. Standardmäßig läuft die Integration im *Nur-Lesen*-Modus, um unbeabsichtigte Änderungen zu vermeiden. Dieser Modus kann in den Integrationsoptionen deaktiviert werden, um Änderungen zu ermöglichen.
+3. Nach der Einrichtung kann über **Konfigurieren** in der Integration der Host oder das Passwort angepasst werden. Die verfügbaren Installateur-Parameter werden direkt vom Wechselrichter geladen und in einer Auswahlliste mit lesbaren Namen und dem aktuellen Wert angezeigt, sodass Einstellungen geändert werden können, ohne den Schlüssel zu kennen. Standardmäßig läuft die Integration im *Nur-Lesen*-Modus, um unbeabsichtigte Änderungen zu vermeiden. Dieser Modus kann in den Integrationsoptionen deaktiviert werden, um Änderungen zu ermöglichen.
 
 ## Dienste
 
@@ -34,7 +34,7 @@ Die Integration stellt Dienste bereit, um Installateur-Parameter abzurufen und z
 ```yaml
 service: solax_installateur_settings.set_installer_setting
 data:
-  setting: feed_in_limit
+  setting: Feed-in Limit
   value: 50
   confirm: true
   # host: 192.168.1.100  # optional, notwendig bei mehreren Wechselrichtern
