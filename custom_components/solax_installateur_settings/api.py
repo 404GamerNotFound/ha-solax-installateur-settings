@@ -13,6 +13,11 @@ class SolaxInstallerClient:
         self._host = host
         self._password = password
 
+    @property
+    def host(self) -> str:
+        """Return the inverter host."""
+        return self._host
+
     async def async_set_parameter(self, key: str, value: str) -> dict:
         """Set a parameter on the inverter via its HTTP API."""
         url = f"http://{self._host}/api/installer/set"

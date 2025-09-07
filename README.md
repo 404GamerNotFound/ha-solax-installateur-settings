@@ -1,30 +1,46 @@
 # ha-solax-installateur-settings
 
-Custom Home Assistant integration to manage installer settings on Solax inverters.
+Custom Home Assistant integration to manage installer settings on SolaX inverters via the local HTTP API. It allows changing installer parameters without leaving Home Assistant.
+
+## Voraussetzungen
+
+- Eine funktionierende Home Assistant Installation
+- Zugriff auf das lokale Netzwerk des Wechselrichters
+- Das Installateur-Passwort des Wechselrichters
 
 ## Installation
 
-Copy the `custom_components/solax_installateur_settings` folder to your Home Assistant `custom_components` directory or install via HACS.
+### Über HACS
 
-## Configuration
+1. In HACS das **Benutzerdefinierte Repository** `https://github.com/404GamerNotFound/ha-solax-installateur-settings` als Typ *Integration* hinzufügen.
+2. Nach dem Hinzufügen in HACS nach `Solax Installer Settings` suchen und installieren.
+3. Home Assistant neu starten.
 
-Use the Home Assistant UI to add the **Solax Installer Settings** integration and provide the inverter host and installer password.
+### Manuelle Installation
 
-After installation, open the integration options to adjust the host or password and to send installer parameters via a simple form. Enter the setting name and value to apply changes directly to the inverter.
+1. Das Verzeichnis `custom_components/solax_installateur_settings` in das `custom_components` Verzeichnis der Home Assistant-Installation kopieren.
+2. Home Assistant neu starten.
+
+## Konfiguration
+
+1. In Home Assistant **Einstellungen → Geräte & Dienste → Integration hinzufügen** wählen.
+2. `Solax Installer Settings` auswählen und die IP-Adresse/den Hostnamen sowie das Installateur-Passwort des Wechselrichters eingeben.
+3. Nach der Einrichtung kann über **Konfigurieren** in der Integration der Host oder das Passwort angepasst werden. Zusätzlich lässt sich dort über ein Formular sofort ein Parameter setzen (Schlüssel und Wert angeben).
 
 ## Services
 
-The integration exposes a service to change an installer parameter:
+Die Integration stellt einen Dienst bereit, um Installateur-Parameter zu setzen:
 
 ```yaml
 service: solax_installateur_settings.set_installer_setting
 data:
   setting: feed_in_limit
   value: 50
+  # host: 192.168.1.100  # optional, notwendig bei mehreren Wechselrichtern
 ```
 
-The underlying HTTP API may differ between inverter models; adjust `api.py` if needed.
+Wenn mehrere Wechselrichter eingebunden sind, muss das Feld `host` gesetzt werden, damit der richtige Client ausgewählt wird.
 
 ## Implementation
 
-Communication with the inverter is handled by the internal `SolaxInstallerClient` defined in `custom_components/solax_installateur_settings/api.py`.
+Communication with the inverter is handled by the internal `SolaxInstallerClient` defined in `custom_components/solax_installateur_settings/api.py`. Die HTTP-API kann je nach Wechselrichtermodell variieren; bei Bedarf `api.py` anpassen.

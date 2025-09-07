@@ -7,3 +7,6 @@ set_installer_setting:
     value:
       description: Value to apply.
       example: 50
+    host:
+      description: IP address or hostname of the inverter. Required when multiple inverters are configured.
+      example: 192.168.1.100
