@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
 
 from .api import SolaxInstallerClient
 from .const import (
@@ -48,6 +48,32 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             DOMAIN, "set_installer_setting", async_set_installer_setting
         )
 
+    if not hass.services.has_service(DOMAIN, "get_installer_settings"):
+
+        async def async_get_installer_settings(call: ServiceCall) -> dict:
+            service_host: str | None = call.data.get(CONF_HOST)
+            target_client: SolaxInstallerClient | None = None
+
+            if service_host:
+                for stored_client in hass.data[DOMAIN].values():
+                    if stored_client.host == service_host:
+                        target_client = stored_client
+                        break
+            elif len(hass.data[DOMAIN]) == 1:
+                target_client = next(iter(hass.data[DOMAIN].values()))
+
+            if target_client is None:
+                raise ValueError("Unknown or ambiguous inverter host")
+
+            return await target_client.async_get_all_settings()
+
+        hass.services.async_register(
+            DOMAIN,
+            "get_installer_settings",
+            async_get_installer_settings,
+            supports_response=SupportsResponse.ONLY,
+        )
+
     return True
 
 
@@ -57,5 +83,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     if not hass.data[DOMAIN]:
         hass.services.async_remove(DOMAIN, "set_installer_setting")
+        hass.services.async_remove(DOMAIN, "get_installer_settings")
 
     return True
