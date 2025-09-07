@@ -23,19 +23,39 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     client = SolaxInstallerClient(hass, host, password)
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = client
 
-    async def async_set_installer_setting(call: ServiceCall) -> None:
-        await client.async_set_parameter(call.data[CONF_SETTING], call.data[CONF_VALUE])
+    if not hass.services.has_service(DOMAIN, "set_installer_setting"):
 
-    hass.services.async_register(
-        DOMAIN,
-        "set_installer_setting",
-        async_set_installer_setting,
-    )
+        async def async_set_installer_setting(call: ServiceCall) -> None:
+            service_host: str | None = call.data.get(CONF_HOST)
+            target_client: SolaxInstallerClient | None = None
+
+            if service_host:
+                for stored_client in hass.data[DOMAIN].values():
+                    if stored_client.host == service_host:
+                        target_client = stored_client
+                        break
+            elif len(hass.data[DOMAIN]) == 1:
+                target_client = next(iter(hass.data[DOMAIN].values()))
+
+            if target_client is None:
+                raise ValueError("Unknown or ambiguous inverter host")
+
+            await target_client.async_set_parameter(
+                call.data[CONF_SETTING], call.data[CONF_VALUE]
+            )
+
+        hass.services.async_register(
+            DOMAIN, "set_installer_setting", async_set_installer_setting
+        )
+
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    hass.services.async_remove(DOMAIN, "set_installer_setting")
     hass.data[DOMAIN].pop(entry.entry_id)
+
+    if not hass.data[DOMAIN]:
+        hass.services.async_remove(DOMAIN, "set_installer_setting")
+
     return True
