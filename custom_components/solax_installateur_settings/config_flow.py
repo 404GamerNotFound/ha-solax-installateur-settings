@@ -16,6 +16,7 @@ from .const import (
     CONF_VALUE,
     CONF_VIEW_ONLY,
     DOMAIN,
+    SETTING_NAMES,
 )
 
 DATA_SCHEMA = vol.Schema({
@@ -68,7 +69,10 @@ class SolaxInstallerOptionsFlow(config_entries.OptionsFlow):
             settings = await client.async_get_all_settings()
             if not isinstance(settings, dict):
                 raise ValueError
-            options = {f"{key} ({value})": key for key, value in settings.items()}
+            options = {
+                f"{SETTING_NAMES.get(key, key)} ({value})": key
+                for key, value in settings.items()
+            }
         except (ClientError, asyncio.TimeoutError, ValueError):
             errors.setdefault("base", "cannot_connect")
 

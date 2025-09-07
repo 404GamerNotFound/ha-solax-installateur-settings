@@ -25,7 +25,7 @@ Intégration personnalisée pour Home Assistant permettant de gérer les paramè
 
 1. Dans Home Assistant, va à **Paramètres → Appareils et services → Ajouter une intégration**.
 2. Sélectionne `Solax Installer Settings` et saisis l’adresse IP/le nom d’hôte ainsi que le mot de passe installateur de l’onduleur.
-3. Après la configuration, l’hôte ou le mot de passe peuvent être mis à jour via **Configurer** dans l’intégration. Les paramètres installateur disponibles sont chargés directement depuis l’onduleur et affichés dans une liste déroulante avec la valeur actuelle, permettant de modifier les réglages sans connaître la clé. Par défaut, l’intégration fonctionne en mode *lecture seule* pour éviter les modifications accidentelles ; ce mode peut être désactivé dans les options de l’intégration pour autoriser les changements.
+3. Après la configuration, l’hôte ou le mot de passe peuvent être mis à jour via **Configurer** dans l’intégration. Les paramètres installateur disponibles sont chargés directement depuis l’onduleur et affichés dans une liste déroulante avec des noms lisibles et la valeur actuelle, permettant de modifier les réglages sans connaître la clé. Par défaut, l’intégration fonctionne en mode *lecture seule* pour éviter les modifications accidentelles ; ce mode peut être désactivé dans les options de l’intégration pour autoriser les changements.
 
 ## Services
 
@@ -34,7 +34,7 @@ L’intégration fournit des services pour récupérer et définir des paramètr
 ```yaml
 service: solax_installateur_settings.set_installer_setting
 data:
-  setting: feed_in_limit
+  setting: Feed-in Limit
   value: 50
   confirm: true
   # host: 192.168.1.100  # optionnel, requis lors de l’utilisation de plusieurs onduleurs

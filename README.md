@@ -27,7 +27,7 @@ Custom Home Assistant integration to manage installer settings on SolaX inverter
 
 1. In Home Assistant go to **Settings → Devices & Services → Add Integration**.
 2. Select `Solax Installer Settings` and enter the IP address/hostname and the inverter's installer password.
-3. After setup, the host or password can be updated via **Configure** in the integration. The available installer parameters are loaded directly from the inverter and shown in a dropdown with the current value, allowing changes without knowing the key. By default the integration runs in *view-only* mode to avoid accidental changes. Disable this option in the integration settings to allow modifications.
+3. After setup, the host or password can be updated via **Configure** in the integration. The available installer parameters are loaded directly from the inverter and shown in a dropdown with the current value, using human-friendly names so the raw keys don't need to be entered manually. By default the integration runs in *view-only* mode to avoid accidental changes. Disable this option in the integration settings to allow modifications.
 
 ## Services
 
@@ -36,7 +36,7 @@ The integration provides services to retrieve and set installer parameters:
 ```yaml
 service: solax_installateur_settings.set_installer_setting
 data:
-  setting: feed_in_limit
+  setting: Feed-in Limit
   value: 50
   confirm: true
   # host: 192.168.1.100  # optional, required when using multiple inverters

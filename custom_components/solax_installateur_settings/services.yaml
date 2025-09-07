@@ -2,8 +2,9 @@ set_installer_setting:
   description: Set an installer setting on the Solax inverter.
   fields:
     setting:
-      description: Key of the setting to modify.
-      example: feed_in_limit
+      description: Name of the setting to modify. May be either the internal key
+        or the human-friendly name provided by the integration.
+      example: Feed-in Limit
     value:
       description: Value to apply.
       example: 50

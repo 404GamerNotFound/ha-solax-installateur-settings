@@ -14,6 +14,7 @@ from .const import (
     CONF_VIEW_ONLY,
     CONF_CONFIRM,
     DOMAIN,
+    SETTING_NAMES,
 )
 
 
@@ -48,9 +49,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             if not call.data.get(CONF_CONFIRM):
                 raise ValueError("Confirmation required to modify settings")
 
-            await target_client.async_set_parameter(
-                call.data[CONF_SETTING], call.data[CONF_VALUE]
-            )
+            setting = call.data[CONF_SETTING]
+            reverse = {v: k for k, v in SETTING_NAMES.items()}
+            key = reverse.get(setting, setting)
+            await target_client.async_set_parameter(key, call.data[CONF_VALUE])
 
         hass.services.async_register(
             DOMAIN, "set_installer_setting", async_set_installer_setting
