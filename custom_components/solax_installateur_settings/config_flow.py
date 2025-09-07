@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
+
+from aiohttp import ClientError
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
@@ -45,15 +48,29 @@ class SolaxInstallerOptionsFlow(config_entries.OptionsFlow):
 
     async def async_step_init(self, user_input=None):
         client = self.hass.data[DOMAIN][self.config_entry.entry_id]
+        errors: dict[str, str] = {}
+
         if user_input is not None:
             setting = user_input.pop(CONF_SETTING, None)
             value = user_input.pop(CONF_VALUE, None)
             if setting and value:
-                await client.async_set_parameter(setting, value)
-            return self.async_create_entry(title="", data=user_input)
+                try:
+                    await client.async_set_parameter(setting, value)
+                except PermissionError:
+                    errors["base"] = "view_only"
+                except (ClientError, asyncio.TimeoutError):
+                    errors["base"] = "cannot_connect"
+            if not errors:
+                return self.async_create_entry(title="", data=user_input)
 
-        settings = await client.async_get_all_settings()
-        options = {f"{key} ({value})": key for key, value in settings.items()}
+        options = {}
+        try:
+            settings = await client.async_get_all_settings()
+            if not isinstance(settings, dict):
+                raise ValueError
+            options = {f"{key} ({value})": key for key, value in settings.items()}
+        except (ClientError, asyncio.TimeoutError, ValueError):
+            errors.setdefault("base", "cannot_connect")
 
         return self.async_show_form(
             step_id="init",
@@ -82,4 +99,5 @@ class SolaxInstallerOptionsFlow(config_entries.OptionsFlow):
                     vol.Optional(CONF_VALUE): str,
                 }
             ),
+            errors=errors,
         )
