@@ -7,7 +7,6 @@ DOMAIN = "solax_installateur_settings"
 def test_manifest_fields():
     manifest_path = Path(__file__).resolve().parent.parent / "custom_components" / DOMAIN / "manifest.json"
     manifest = json.loads(manifest_path.read_text())
-    assert manifest.get("brand") == "Solax"
     assert manifest.get("iot_class") == "local_polling"
     assert (
         manifest.get("issue_tracker")

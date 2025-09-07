@@ -1,7 +1,6 @@
 {
   "domain": "solax_installateur_settings",
   "name": "Solax Installer Settings",
-  "brand": "Solax",
   "codeowners": ["@404GamerNotFound"],
   "config_flow": true,
   "documentation": "https://github.com/404GamerNotFound/ha-solax-installateur-settings",
