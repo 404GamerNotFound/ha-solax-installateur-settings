@@ -1,10 +1,10 @@
 {
   "domain": "solax_installateur_settings",
   "name": "Solax Installer Settings",
-  "version": "0.1.0",
-  "documentation": "https://github.com/404GamerNotFound/ha-solax-installateur-settings",
-  "requirements": [],
   "codeowners": ["@404GamerNotFound"],
   "config_flow": true,
-  "iot_class": "local_polling"
+  "documentation": "https://github.com/404GamerNotFound/ha-solax-installateur-settings",
+  "iot_class": "local_polling",
+  "requirements": [],
+  "version": "0.1.0"
 }
