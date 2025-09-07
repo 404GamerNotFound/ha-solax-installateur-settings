@@ -1,0 +1,7 @@
+{
+  "name": "Solax Installer Settings",
+  "content_in_root": false,
+  "render_readme": true,
+  "domains": ["solax_installateur_settings"],
+  "brand": "Solax"
+}

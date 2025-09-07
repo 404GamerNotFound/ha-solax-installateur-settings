@@ -25,3 +25,11 @@ class SolaxInstallerClient:
         async with self._session.get(url, params=params) as resp:
             resp.raise_for_status()
             return await resp.json()
+
+    async def async_get_all_settings(self) -> dict:
+        """Return all installer settings from the inverter."""
+        url = f"http://{self._host}/api/installer/getall"
+        params = {"pwd": self._password}
+        async with self._session.get(url, params=params) as resp:
+            resp.raise_for_status()
+            return await resp.json()

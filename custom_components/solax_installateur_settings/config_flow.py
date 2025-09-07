@@ -36,13 +36,16 @@ class SolaxInstallerOptionsFlow(config_entries.OptionsFlow):
         self.config_entry = config_entry
 
     async def async_step_init(self, user_input=None):
+        client = self.hass.data[DOMAIN][self.config_entry.entry_id]
         if user_input is not None:
             setting = user_input.pop(CONF_SETTING, None)
             value = user_input.pop(CONF_VALUE, None)
             if setting and value:
-                client = self.hass.data[DOMAIN][self.config_entry.entry_id]
                 await client.async_set_parameter(setting, value)
             return self.async_create_entry(title="", data=user_input)
+
+        settings = await client.async_get_all_settings()
+        options = {f"{key} ({value})": key for key, value in settings.items()}
 
         return self.async_show_form(
             step_id="init",
@@ -60,7 +63,7 @@ class SolaxInstallerOptionsFlow(config_entries.OptionsFlow):
                             CONF_PASSWORD, self.config_entry.data[CONF_PASSWORD]
                         ),
                     ): str,
-                    vol.Optional(CONF_SETTING): str,
+                    vol.Optional(CONF_SETTING): vol.In(options),
                     vol.Optional(CONF_VALUE): str,
                 }
             ),
