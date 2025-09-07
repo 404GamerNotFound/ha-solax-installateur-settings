@@ -6,11 +6,19 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
 
-from .const import CONF_HOST, CONF_PASSWORD, CONF_SETTING, CONF_VALUE, DOMAIN
+from .const import (
+    CONF_HOST,
+    CONF_PASSWORD,
+    CONF_SETTING,
+    CONF_VALUE,
+    CONF_VIEW_ONLY,
+    DOMAIN,
+)
 
 DATA_SCHEMA = vol.Schema({
     vol.Required(CONF_HOST): str,
     vol.Required(CONF_PASSWORD): str,
+    vol.Required(CONF_VIEW_ONLY, default=True): bool,
 })
 
 
@@ -63,6 +71,13 @@ class SolaxInstallerOptionsFlow(config_entries.OptionsFlow):
                             CONF_PASSWORD, self.config_entry.data[CONF_PASSWORD]
                         ),
                     ): str,
+                    vol.Required(
+                        CONF_VIEW_ONLY,
+                        default=self.config_entry.options.get(
+                            CONF_VIEW_ONLY,
+                            self.config_entry.data.get(CONF_VIEW_ONLY, True),
+                        ),
+                    ): bool,
                     vol.Optional(CONF_SETTING): vol.In(options),
                     vol.Optional(CONF_VALUE): str,
                 }

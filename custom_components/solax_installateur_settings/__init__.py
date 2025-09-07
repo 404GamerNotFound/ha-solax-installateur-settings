@@ -11,6 +11,8 @@ from .const import (
     CONF_PASSWORD,
     CONF_SETTING,
     CONF_VALUE,
+    CONF_VIEW_ONLY,
+    CONF_CONFIRM,
     DOMAIN,
 )
 
@@ -19,8 +21,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Solax installer integration from a config entry."""
     host: str = entry.options.get(CONF_HOST, entry.data[CONF_HOST])
     password: str = entry.options.get(CONF_PASSWORD, entry.data[CONF_PASSWORD])
+    view_only: bool = entry.options.get(
+        CONF_VIEW_ONLY, entry.data.get(CONF_VIEW_ONLY, True)
+    )
 
-    client = SolaxInstallerClient(hass, host, password)
+    client = SolaxInstallerClient(hass, host, password, view_only)
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = client
 
     if not hass.services.has_service(DOMAIN, "set_installer_setting"):
@@ -39,6 +44,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
             if target_client is None:
                 raise ValueError("Unknown or ambiguous inverter host")
+
+            if not call.data.get(CONF_CONFIRM):
+                raise ValueError("Confirmation required to modify settings")
 
             await target_client.async_set_parameter(
                 call.data[CONF_SETTING], call.data[CONF_VALUE]
