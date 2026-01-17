@@ -26,7 +26,7 @@ Custom Home Assistant integration to manage installer settings on SolaX inverter
 ## Configuration
 
 1. In Home Assistant go to **Settings → Devices & Services → Add Integration**.
-2. Select `Solax Installer Settings` and enter the IP address/hostname and the inverter's installer password.
+2. Select `Solax Installer Settings` and enter the inverter host (IP/hostname, with optional port or http/https scheme) and the installer password.
 3. After setup, the host or password can be updated via **Configure** in the integration. The available installer parameters are loaded directly from the inverter and shown in a dropdown with the current value, using human-friendly names so the raw keys don't need to be entered manually. By default the integration runs in *view-only* mode to avoid accidental changes. Disable this option in the integration settings to allow modifications.
 
 ## Services
@@ -39,14 +39,14 @@ data:
   setting: Feed-in Limit
   value: 50
   confirm: true
-  # host: 192.168.1.100  # optional, required when using multiple inverters
+  # host: 192.168.1.100  # optional, required when using multiple inverters; port/scheme supported
 ```
 `confirm: true` is required as a safety measure; calls without it are rejected.
 
 ```yaml
 service: solax_installateur_settings.get_installer_settings
 data:
-  # host: 192.168.1.100  # optional, required when using multiple inverters
+  # host: 192.168.1.100  # optional, required when using multiple inverters; port/scheme supported
 ```
 
 Both services support multiple inverters; in that case the `host` field must be set so the correct client is selected.
@@ -54,4 +54,3 @@ Both services support multiple inverters; in that case the `host` field must be 
 ## Implementation
 
 Communication with the inverter is handled by the internal `SolaxInstallerClient` defined in `custom_components/solax_installateur_settings/api.py`. The HTTP API may vary by inverter model; adjust `api.py` if needed.
-

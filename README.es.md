@@ -24,7 +24,7 @@ Integración personalizada de Home Assistant para gestionar los ajustes de insta
 ## Configuración
 
 1. En Home Assistant ve a **Configuración → Dispositivos y Servicios → Agregar integración**.
-2. Selecciona `Solax Installer Settings` e introduce la dirección IP/nombre de host y la contraseña de instalador del inversor.
+2. Selecciona `Solax Installer Settings` e introduce el host del inversor (IP/nombre de host, con puerto opcional o esquema http/https) y la contraseña de instalador.
 3. Tras la configuración, el host o la contraseña se pueden actualizar mediante **Configurar** en la integración. Los parámetros de instalador disponibles se cargan directamente desde el inversor y se muestran en una lista desplegable con nombres legibles y el valor actual, lo que permite cambiar ajustes sin conocer la clave. De forma predeterminada la integración funciona en modo *solo lectura* para evitar cambios accidentales; puede desactivarse en las opciones de la integración para permitir modificaciones.
 
 ## Servicios
@@ -37,14 +37,14 @@ data:
   setting: Feed-in Limit
   value: 50
   confirm: true
-  # host: 192.168.1.100  # opcional, necesario cuando se usan varios inversores
+  # host: 192.168.1.100  # opcional, necesario cuando se usan varios inversores; se admite puerto/esquema
 ```
 `confirm: true` es obligatorio como medida de seguridad; las llamadas sin él se rechazan.
 
 ```yaml
 service: solax_installateur_settings.get_installer_settings
 data:
-  # host: 192.168.1.100  # opcional, necesario cuando se usan varios inversores
+  # host: 192.168.1.100  # opcional, necesario cuando se usan varios inversores; se admite puerto/esquema
 ```
 
 Ambos servicios admiten múltiples inversores; en ese caso debe establecerse el campo `host` para seleccionar el cliente correcto.
@@ -52,4 +52,3 @@ Ambos servicios admiten múltiples inversores; en ese caso debe establecerse el 
 ## Implementación
 
 La comunicación con el inversor se gestiona mediante el `SolaxInstallerClient` interno definido en `custom_components/solax_installateur_settings/api.py`. La API HTTP puede variar según el modelo de inversor; ajusta `api.py` si es necesario.
-

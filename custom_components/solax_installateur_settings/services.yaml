@@ -9,7 +9,7 @@ set_installer_setting:
       description: Value to apply.
       example: 50
     host:
-      description: IP address or hostname of the inverter. Required when multiple inverters are configured.
+      description: IP address or hostname of the inverter. Optional port and http/https scheme are supported. Required when multiple inverters are configured.
       example: 192.168.1.100
     confirm:
       description: Must be true to apply the change.
@@ -19,5 +19,5 @@ get_installer_settings:
   description: Retrieve all installer settings from the Solax inverter.
   fields:
     host:
-      description: IP address or hostname of the inverter. Required when multiple inverters are configured.
+      description: IP address or hostname of the inverter. Optional port and http/https scheme are supported. Required when multiple inverters are configured.
       example: 192.168.1.100
