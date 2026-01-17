@@ -1,5 +1,9 @@
 """Client for interacting with Solax inverter installer settings."""
 
+from __future__ import annotations
+
+from urllib.parse import urlparse
+
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
@@ -22,6 +26,14 @@ class SolaxInstallerClient:
         return self._host
 
     @property
+    def _base_url(self) -> str:
+        """Return the base URL for the inverter API."""
+        parsed = urlparse(self._host)
+        if parsed.scheme and parsed.netloc:
+            return self._host.rstrip("/")
+        return f"http://{self._host}"
+
+    @property
     def view_only(self) -> bool:
         """Return if the client operates in view-only mode."""
         return self._view_only
@@ -30,7 +42,7 @@ class SolaxInstallerClient:
         """Set a parameter on the inverter via its HTTP API."""
         if self._view_only:
             raise PermissionError("Client is in view-only mode")
-        url = f"http://{self._host}/api/installer/set"
+        url = f"{self._base_url}/api/installer/set"
         params = {"pwd": self._password, "key": key, "value": value}
         async with self._session.get(url, params=params) as resp:
             resp.raise_for_status()
@@ -38,7 +50,7 @@ class SolaxInstallerClient:
 
     async def async_get_all_settings(self) -> dict:
         """Return all installer settings from the inverter."""
-        url = f"http://{self._host}/api/installer/getall"
+        url = f"{self._base_url}/api/installer/getall"
         params = {"pwd": self._password}
         async with self._session.get(url, params=params) as resp:
             resp.raise_for_status()

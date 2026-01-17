@@ -24,7 +24,7 @@ Benutzerdefinierte Home Assistant-Integration zum Verwalten von Installateur-Ein
 ## Konfiguration
 
 1. In Home Assistant **Einstellungen → Geräte & Dienste → Integration hinzufügen** wählen.
-2. `Solax Installer Settings` auswählen und die IP-Adresse/den Hostnamen sowie das Installateur-Passwort des Wechselrichters eingeben.
+2. `Solax Installer Settings` auswählen und den Host des Wechselrichters (IP/Hostname, optional mit Port oder http/https-Schema) sowie das Installateur-Passwort eingeben.
 3. Nach der Einrichtung kann über **Konfigurieren** in der Integration der Host oder das Passwort angepasst werden. Die verfügbaren Installateur-Parameter werden direkt vom Wechselrichter geladen und in einer Auswahlliste mit lesbaren Namen und dem aktuellen Wert angezeigt, sodass Einstellungen geändert werden können, ohne den Schlüssel zu kennen. Standardmäßig läuft die Integration im *Nur-Lesen*-Modus, um unbeabsichtigte Änderungen zu vermeiden. Dieser Modus kann in den Integrationsoptionen deaktiviert werden, um Änderungen zu ermöglichen.
 
 ## Dienste
@@ -37,14 +37,14 @@ data:
   setting: Feed-in Limit
   value: 50
   confirm: true
-  # host: 192.168.1.100  # optional, notwendig bei mehreren Wechselrichtern
+  # host: 192.168.1.100  # optional, notwendig bei mehreren Wechselrichtern; Port/Scheme möglich
 ```
 `confirm: true` ist als Sicherheitsmaßnahme erforderlich; Aufrufe ohne diese Bestätigung werden abgelehnt.
 
 ```yaml
 service: solax_installateur_settings.get_installer_settings
 data:
-  # host: 192.168.1.100  # optional, notwendig bei mehreren Wechselrichtern
+  # host: 192.168.1.100  # optional, notwendig bei mehreren Wechselrichtern; Port/Scheme möglich
 ```
 
 Beide Dienste unterstützen mehrere Wechselrichter; in diesem Fall muss das Feld `host` gesetzt werden, damit der richtige Client ausgewählt wird.
@@ -52,4 +52,3 @@ Beide Dienste unterstützen mehrere Wechselrichter; in diesem Fall muss das Feld
 ## Implementierung
 
 Die Kommunikation mit dem Wechselrichter wird vom internen `SolaxInstallerClient` in `custom_components/solax_installateur_settings/api.py` übernommen. Die HTTP-API kann je nach Wechselrichtermodell variieren; bei Bedarf `api.py` anpassen.
-
