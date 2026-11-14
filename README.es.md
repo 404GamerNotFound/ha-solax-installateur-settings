@@ -1,54 +1,26 @@
 # ha-solax-installateur-settings
 
-Integración personalizada de Home Assistant para gestionar los ajustes de instalador en inversores SolaX mediante la API HTTP local. Permite cambiar parámetros de instalador sin salir de Home Assistant.
+[English](README.md) | [Deutsch](README.de.md) | [Français](README.fr.md)
 
-## Requisitos previos
+Integración personalizada de Home Assistant para gestionar los **ajustes de instalador protegidos por contraseña** de inversores híbridos SolaX (Gen4/Gen5, p. ej. **X3-IES**) mediante **Modbus TCP**.
 
-- Una instalación funcional de Home Assistant
-- Acceso a la red local del inversor
-- La contraseña de instalador del inversor
+La contraseña de instalador se escribe en el registro de desbloqueo (registro holding `0x0000`); el inversor informa después su estado de bloqueo (registro input `0x0054`), por lo que una contraseña incorrecta se detecta de inmediato.
+
+## Requisitos
+
+- Home Assistant 2024.11 o posterior
+- Acceso Modbus TCP al inversor (la misma IP/puerto que usa `solax_modbus`, puerto `502`, unit ID `1` por defecto)
+- La contraseña numérica de instalador (p. ej. `2014` básica o `6868` avanzada)
 
 ## Instalación
 
-### Via HACS
-
-1. En HACS agrega el **Repositorio Personalizado** `https://github.com/404GamerNotFound/ha-solax-installateur-settings` como tipo *Integration*.
-2. Después de añadirlo, busca `Solax Installer Settings` en HACS e instálalo.
-3. Reinicia Home Assistant.
-
-### Instalación manual
-
-1. Copia el directorio `custom_components/solax_installateur_settings` al directorio `custom_components` de tu instalación de Home Assistant.
-2. Reinicia Home Assistant.
+1. En HACS añade el **repositorio personalizado** `https://github.com/404GamerNotFound/ha-solax-installateur-settings` como *Integración*, instala `Solax Installer Settings` y reinicia Home Assistant.
+2. O copia `custom_components/solax_installateur_settings` a tu carpeta `custom_components` y reinicia.
 
 ## Configuración
 
-1. En Home Assistant ve a **Configuración → Dispositivos y Servicios → Agregar integración**.
-2. Selecciona `Solax Installer Settings` e introduce el host del inversor (IP/nombre de host, con puerto opcional o esquema http/https) y la contraseña de instalador.
-3. Tras la configuración, el host o la contraseña se pueden actualizar mediante **Configurar** en la integración. Los parámetros de instalador disponibles se cargan directamente desde el inversor y se muestran en una lista desplegable con nombres legibles y el valor actual, lo que permite cambiar ajustes sin conocer la clave. De forma predeterminada la integración funciona en modo *solo lectura* para evitar cambios accidentales; puede desactivarse en las opciones de la integración para permitir modificaciones.
+1. **Ajustes → Dispositivos y servicios → Añadir integración → Solax Installer Settings**.
+2. Introduce host, puerto, unit ID y la **contraseña de instalador**; se verifica desbloqueando el inversor.
+3. Por defecto está activo el **modo solo lectura**; desactívalo en **Configurar** para permitir cambios.
 
-## Servicios
-
-La integración proporciona servicios para obtener y establecer parámetros de instalador:
-
-```yaml
-service: solax_installateur_settings.set_installer_setting
-data:
-  setting: Feed-in Limit
-  value: 50
-  confirm: true
-  # host: 192.168.1.100  # opcional, necesario cuando se usan varios inversores; se admite puerto/esquema
-```
-`confirm: true` es obligatorio como medida de seguridad; las llamadas sin él se rechazan.
-
-```yaml
-service: solax_installateur_settings.get_installer_settings
-data:
-  # host: 192.168.1.100  # opcional, necesario cuando se usan varios inversores; se admite puerto/esquema
-```
-
-Ambos servicios admiten múltiples inversores; en ese caso debe establecerse el campo `host` para seleccionar el cliente correcto.
-
-## Implementación
-
-La comunicación con el inversor se gestiona mediante el `SolaxInstallerClient` interno definido en `custom_components/solax_installateur_settings/api.py`. La API HTTP puede variar según el modelo de inversor; ajusta `api.py` si es necesario.
+Se crean entidades `number`/`select` para límite de inyección, corriente del interruptor principal, corrientes de batería, SoC mínimo EPS, dirección de los medidores, bias de red y shadow fix PV1–PV3, además de un sensor de estado de bloqueo y botones para desbloquear/bloquear. Detalles y servicios: ver [README en inglés](README.md).

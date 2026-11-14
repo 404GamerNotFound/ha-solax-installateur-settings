@@ -1,54 +1,75 @@
 # ha-solax-installateur-settings
 
-Benutzerdefinierte Home Assistant-Integration zum Verwalten von Installateur-Einstellungen auf SolaX-Wechselrichtern über die lokale HTTP-API. Sie ermöglicht das Ändern von Installateurparametern, ohne Home Assistant zu verlassen.
+[English](README.md) | [Español](README.es.md) | [Français](README.fr.md)
+
+Benutzerdefinierte Home Assistant-Integration zum Verwalten der **kennwortgeschützten Installateur-Einstellungen** von SolaX-Hybrid-Wechselrichtern (Gen4/Gen5, z. B. **X3-IES**) über **Modbus TCP**.
+
+Das Installateur-Kennwort wird in das Entsperr-Register des Wechselrichters geschrieben (Holding-Register `0x0000`). Danach meldet der Wechselrichter seinen Sperrstatus (Input-Register `0x0054`: gesperrt / entsperrt / entsperrt erweitert) – ein falsches Kennwort wird so sofort erkannt.
 
 ## Voraussetzungen
 
-- Eine funktionierende Home Assistant Installation
-- Zugriff auf das lokale Netzwerk des Wechselrichters
-- Das Installateur-Passwort des Wechselrichters
+- Home Assistant 2024.11 oder neuer
+- Modbus-TCP-Zugriff auf den Wechselrichter (dieselbe IP/Port wie z. B. bei der `solax_modbus`-Integration, Standard-Port `502`, Unit-ID `1`)
+- Das numerische Installateur-Kennwort des Wechselrichters (z. B. `2014` für Basis- oder `6868` für erweiterte Einstellungen)
 
 ## Installation
 
 ### Über HACS
 
-1. In HACS das **Benutzerdefinierte Repository** `https://github.com/404GamerNotFound/ha-solax-installateur-settings` als Typ *Integration* hinzufügen.
-2. Nach dem Hinzufügen in HACS nach `Solax Installer Settings` suchen und installieren.
+1. In HACS das **benutzerdefinierte Repository** `https://github.com/404GamerNotFound/ha-solax-installateur-settings` als Typ *Integration* hinzufügen.
+2. In HACS nach `Solax Installer Settings` suchen und installieren.
 3. Home Assistant neu starten.
 
 ### Manuelle Installation
 
-1. Das Verzeichnis `custom_components/solax_installateur_settings` in das `custom_components` Verzeichnis der Home Assistant-Installation kopieren.
+1. Den Ordner `custom_components/solax_installateur_settings` in das `custom_components`-Verzeichnis von Home Assistant kopieren.
 2. Home Assistant neu starten.
 
-## Konfiguration
+## Einrichtung
 
-1. In Home Assistant **Einstellungen → Geräte & Dienste → Integration hinzufügen** wählen.
-2. `Solax Installer Settings` auswählen und den Host des Wechselrichters (IP/Hostname, optional mit Port oder http/https-Schema) sowie das Installateur-Passwort eingeben.
-3. Nach der Einrichtung kann über **Konfigurieren** in der Integration der Host oder das Passwort angepasst werden. Die verfügbaren Installateur-Parameter werden direkt vom Wechselrichter geladen und in einer Auswahlliste mit lesbaren Namen und dem aktuellen Wert angezeigt, sodass Einstellungen geändert werden können, ohne den Schlüssel zu kennen. Standardmäßig läuft die Integration im *Nur-Lesen*-Modus, um unbeabsichtigte Änderungen zu vermeiden. Dieser Modus kann in den Integrationsoptionen deaktiviert werden, um Änderungen zu ermöglichen.
+1. **Einstellungen → Geräte & Dienste → Integration hinzufügen → Solax Installer Settings**.
+2. Host, Modbus-TCP-Port, Unit-ID und das **Installateur-Kennwort** eingeben. Die Integration verbindet sich, liest die Seriennummer und entsperrt den Wechselrichter testweise mit dem Kennwort. Bei falschem Kennwort erscheint *„Der Wechselrichter bleibt gesperrt“*.
+3. Standardmäßig läuft die Integration im **Nur-Lesen-Modus**. Unter **Konfigurieren** kann er deaktiviert werden, um Änderungen zu erlauben. Dort lassen sich auch *„Wechselrichter nach jeder Änderung wieder sperren“* und das Abfrageintervall einstellen.
+4. Host oder Kennwort lassen sich über **⋮ → Neu konfigurieren** ändern. Lehnt der Wechselrichter das gespeicherte Kennwort ab, fragt Home Assistant automatisch nach einem neuen.
+
+## Entitäten
+
+| Entität | Typ | Register (schreiben / lesen) |
+| --- | --- | --- |
+| Einspeisebegrenzung (W) | number | 0x42 / 0xB6 |
+| Hauptsicherung Stromgrenze (A) | number | 0x71 / 0xD7 |
+| Batterie max. Lade-/Entladestrom (A) | number | 0x24, 0x25 / 0x90, 0x91 |
+| EPS min. SoC (%) | number | 0x44 / 0xB8 |
+| Zähler 1 / Zähler 2 Richtung | select | 0xA4, 0xA5 / 0x10B, 0x10C |
+| Netz-Bias-Richtung | select | 0x8D / 0xB2 |
+| Schattenmanagement PV1–PV3 (GMPPT) | select | 0x9C, 0x98, 0xFC / 0x104, 0x114, 0x15F |
+| Sperrstatus | sensor | Input 0x54 |
+| Mit Installateur-Kennwort entsperren / Einstellungen sperren | button | 0x00 |
+
+Jede Änderung entsperrt den Wechselrichter zuerst mit dem gespeicherten Kennwort, schreibt das Register und liest den Wert zur Kontrolle zurück.
+
+Die Registerbelegung stammt aus der Community-Integration [homeassistant-solax-modbus](https://github.com/wills106/homeassistant-solax-modbus) für Gen4/Gen5-Hybride. Andere Modelle können andere Register nutzen – Verwendung auf eigene Gefahr.
 
 ## Dienste
 
-Die Integration stellt Dienste bereit, um Installateur-Parameter abzurufen und zu setzen:
-
 ```yaml
-service: solax_installateur_settings.set_installer_setting
+action: solax_installateur_settings.set_installer_setting
 data:
-  setting: Feed-in Limit
-  value: 50
-  confirm: true
-  # host: 192.168.1.100  # optional, notwendig bei mehreren Wechselrichtern; Port/Scheme möglich
-```
-`confirm: true` ist als Sicherheitsmaßnahme erforderlich; Aufrufe ohne diese Bestätigung werden abgelehnt.
-
-```yaml
-service: solax_installateur_settings.get_installer_settings
-data:
-  # host: 192.168.1.100  # optional, notwendig bei mehreren Wechselrichtern; Port/Scheme möglich
+  setting: Feed-in Limit   # Schlüssel oder Name
+  value: 4500
+  confirm: true            # Pflicht-Sicherheitsschalter
+  # host: 192.168.1.100    # nur bei mehreren Wechselrichtern
 ```
 
-Beide Dienste unterstützen mehrere Wechselrichter; in diesem Fall muss das Feld `host` gesetzt werden, damit der richtige Client ausgewählt wird.
+```yaml
+action: solax_installateur_settings.get_installer_settings   # liefert alle Werte + Sperrstatus
+```
 
-## Implementierung
+```yaml
+action: solax_installateur_settings.unlock   # mit gespeichertem Kennwort entsperren
+```
 
-Die Kommunikation mit dem Wechselrichter wird vom internen `SolaxInstallerClient` in `custom_components/solax_installateur_settings/api.py` übernommen. Die HTTP-API kann je nach Wechselrichtermodell variieren; bei Bedarf `api.py` anpassen.
+## Hinweise
+
+- Verbindungen werden nur für eine Abfrage oder einen Schreibvorgang geöffnet und danach wieder geschlossen – so läuft die Integration parallel zu `solax_modbus`. Erlaubt dein Wechselrichter/Dongle nur einen Modbus-TCP-Client, erhöhe das Abfrageintervall.
+- Das Sperren (Button oder Option *wieder sperren*) blockiert auch Schreibzugriffe anderer Integrationen, bis wieder entsperrt wird.

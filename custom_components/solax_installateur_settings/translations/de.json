@@ -1,0 +1,216 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "SolaX Installer Settings",
+        "description": "Verbindung zum Wechselrichter über Modbus TCP. Zum Entsperren der Installateur-Einstellungen wird das Installateur-Kennwort benötigt.",
+        "data": {
+          "host": "Host (IP-Adresse des Wechselrichters / Modbus-TCP-Gateways)",
+          "port": "Modbus-TCP-Port",
+          "unit_id": "Modbus-Unit-ID",
+          "password": "Installateur-Kennwort",
+          "view_only": "Nur-Lesen-Modus (keine Änderungen)"
+        },
+        "data_description": {
+          "host": "Dieselbe IP wie bei der solax_modbus-Integration.",
+          "password": "Numerisches Installateur-Kennwort des Wechselrichters (z. B. 2014 für Basis- oder 6868 für erweiterte Einstellungen)."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Installateur-Kennwort",
+        "description": "Der Wechselrichter hat das Installateur-Kennwort abgelehnt. Bitte erneut eingeben.",
+        "data": {
+          "password": "Installateur-Kennwort"
+        }
+      },
+      "reconfigure": {
+        "title": "Verbindung ändern",
+        "data": {
+          "host": "Host (IP-Adresse des Wechselrichters / Modbus-TCP-Gateways)",
+          "port": "Modbus-TCP-Port",
+          "unit_id": "Modbus-Unit-ID",
+          "password": "Installateur-Kennwort"
+        },
+        "data_description": {
+          "host": "Dieselbe IP wie bei der solax_modbus-Integration.",
+          "password": "Numerisches Installateur-Kennwort des Wechselrichters (z. B. 2014 für Basis- oder 6868 für erweiterte Einstellungen)."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Keine Modbus-TCP-Verbindung zum Wechselrichter möglich.",
+      "invalid_auth": "Der Wechselrichter bleibt gesperrt – das Installateur-Kennwort ist falsch.",
+      "unknown": "Unerwarteter Fehler."
+    },
+    "abort": {
+      "already_configured": "Dieser Wechselrichter ist bereits eingerichtet.",
+      "reauth_successful": "Kennwort aktualisiert.",
+      "reconfigure_successful": "Verbindung aktualisiert.",
+      "wrong_device": "Das ist ein anderer Wechselrichter (Seriennummer stimmt nicht überein)."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Optionen",
+        "data": {
+          "view_only": "Nur-Lesen-Modus (keine Änderungen)",
+          "relock_after_write": "Wechselrichter nach jeder Änderung wieder sperren",
+          "scan_interval": "Abfrageintervall"
+        },
+        "data_description": {
+          "relock_after_write": "Hinweis: Das Sperren blockiert auch Schreibzugriffe anderer Integrationen wie solax_modbus."
+        }
+      }
+    }
+  },
+  "entity": {
+    "number": {
+      "export_control_user_limit": {
+        "name": "Einspeisebegrenzung"
+      },
+      "main_breaker_current_limit": {
+        "name": "Hauptsicherung Stromgrenze"
+      },
+      "battery_charge_max_current": {
+        "name": "Batterie max. Ladestrom"
+      },
+      "battery_discharge_max_current": {
+        "name": "Batterie max. Entladestrom"
+      },
+      "eps_min_soc": {
+        "name": "EPS min. SoC"
+      }
+    },
+    "select": {
+      "meter_1_direction": {
+        "name": "Zähler 1 Richtung",
+        "state": {
+          "positive": "Positiv",
+          "negative": "Negativ"
+        }
+      },
+      "meter_2_direction": {
+        "name": "Zähler 2 Richtung",
+        "state": {
+          "positive": "Positiv",
+          "negative": "Negativ"
+        }
+      },
+      "pgrid_bias": {
+        "name": "Netz-Bias-Richtung",
+        "state": {
+          "disabled": "Deaktiviert",
+          "grid": "Netz",
+          "inverter": "Wechselrichter"
+        }
+      },
+      "shadow_fix_pv1": {
+        "name": "Schattenmanagement PV1 (GMPPT)",
+        "state": {
+          "off": "Aus",
+          "low": "Niedrig",
+          "middle": "Mittel",
+          "high": "Hoch"
+        }
+      },
+      "shadow_fix_pv2": {
+        "name": "Schattenmanagement PV2 (GMPPT)",
+        "state": {
+          "off": "Aus",
+          "low": "Niedrig",
+          "middle": "Mittel",
+          "high": "Hoch"
+        }
+      },
+      "shadow_fix_pv3": {
+        "name": "Schattenmanagement PV3 (GMPPT)",
+        "state": {
+          "off": "Aus",
+          "low": "Niedrig",
+          "middle": "Mittel",
+          "high": "Hoch"
+        }
+      }
+    },
+    "sensor": {
+      "lock_state": {
+        "name": "Sperrstatus",
+        "state": {
+          "locked": "Gesperrt",
+          "unlocked": "Entsperrt",
+          "unlocked_advanced": "Entsperrt (erweitert)"
+        }
+      }
+    },
+    "button": {
+      "unlock": {
+        "name": "Mit Installateur-Kennwort entsperren"
+      },
+      "lock": {
+        "name": "Einstellungen sperren"
+      }
+    }
+  },
+  "exceptions": {
+    "view_only": {
+      "message": "Der Nur-Lesen-Modus ist aktiv. Deaktiviere ihn in den Integrationsoptionen, um Einstellungen zu ändern."
+    },
+    "invalid_auth": {
+      "message": "Der Wechselrichter bleibt gesperrt – das Installateur-Kennwort ist falsch."
+    },
+    "write_failed": {
+      "message": "Schreiben auf den Wechselrichter fehlgeschlagen: {error}"
+    },
+    "confirm_required": {
+      "message": "Setze confirm: true, um Installateur-Einstellungen zu ändern."
+    },
+    "unknown_host": {
+      "message": "Unbekannter oder mehrdeutiger Wechselrichter – bitte das Feld host angeben."
+    }
+  },
+  "services": {
+    "set_installer_setting": {
+      "name": "Installateur-Einstellung setzen",
+      "description": "Entsperrt den Wechselrichter mit dem Installateur-Kennwort und ändert eine Installateur-Einstellung.",
+      "fields": {
+        "setting": {
+          "name": "Einstellung",
+          "description": "Schlüssel oder Name der Einstellung, z. B. Feed-in Limit."
+        },
+        "value": {
+          "name": "Wert",
+          "description": "Neuer Wert (Zahl oder Optionsname)."
+        },
+        "confirm": {
+          "name": "Bestätigen",
+          "description": "Muss true sein, damit die Änderung übernommen wird."
+        },
+        "host": {
+          "name": "Host",
+          "description": "Nur bei mehreren Wechselrichtern nötig."
+        }
+      }
+    },
+    "get_installer_settings": {
+      "name": "Installateur-Einstellungen lesen",
+      "description": "Gibt alle Installateur-Einstellungen und den Sperrstatus zurück.",
+      "fields": {
+        "host": {
+          "name": "Host",
+          "description": "Nur bei mehreren Wechselrichtern nötig."
+        }
+      }
+    },
+    "unlock": {
+      "name": "Entsperren",
+      "description": "Entsperrt den Wechselrichter mit dem gespeicherten Installateur-Kennwort.",
+      "fields": {
+        "host": {
+          "name": "Host",
+          "description": "Nur bei mehreren Wechselrichtern nötig."
+        }
+      }
+    }
+  }
+}

@@ -1,11 +1,17 @@
 {
   "domain": "solax_installateur_settings",
   "name": "Solax Installer Settings",
-  "codeowners": ["@404GamerNotFound"],
+  "codeowners": [
+    "@404GamerNotFound"
+  ],
   "config_flow": true,
   "documentation": "https://github.com/404GamerNotFound/ha-solax-installateur-settings",
+  "integration_type": "device",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/404GamerNotFound/ha-solax-installateur-settings/issues",
+  "loggers": [
+    "custom_components.solax_installateur_settings"
+  ],
   "requirements": [],
-  "version": "0.1.0"
+  "version": "0.2.0"
 }

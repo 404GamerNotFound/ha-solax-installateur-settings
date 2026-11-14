@@ -1,132 +1,185 @@
-"""Config flow for Solax installer integration."""
+"""Config flow for the SolaX installer settings integration."""
 
 from __future__ import annotations
 
-import asyncio
+from collections.abc import Mapping
+import logging
+from typing import Any
 
-from aiohttp import ClientError
 import voluptuous as vol
-from homeassistant import config_entries
-from homeassistant.core import callback
 
-from .api import SolaxInstallerClient
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlow,
+)
+from homeassistant.core import callback
+from homeassistant.helpers.selector import (
+    NumberSelector,
+    NumberSelectorConfig,
+    NumberSelectorMode,
+    TextSelector,
+    TextSelectorConfig,
+    TextSelectorType,
+)
+
+from .api import InvalidPassword, SolaxInstallerClient
 from .const import (
     CONF_HOST,
     CONF_PASSWORD,
-    CONF_SETTING,
-    CONF_VALUE,
+    CONF_PORT,
+    CONF_RELOCK,
+    CONF_SCAN_INTERVAL,
+    CONF_UNIT_ID,
     CONF_VIEW_ONLY,
+    DEFAULT_PORT,
+    DEFAULT_RELOCK,
+    DEFAULT_SCAN_INTERVAL,
+    DEFAULT_UNIT_ID,
+    DEFAULT_VIEW_ONLY,
     DOMAIN,
-    SETTING_NAMES,
 )
+from .modbus import ModbusError
 
-DATA_SCHEMA = vol.Schema({
-    vol.Required(CONF_HOST): str,
-    vol.Required(CONF_PASSWORD): str,
-    vol.Required(CONF_VIEW_ONLY, default=True): bool,
-})
+_LOGGER = logging.getLogger(__name__)
+
+PASSWORD_SELECTOR = TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD))
 
 
-class SolaxInstallerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for the integration."""
+def _connection_schema(defaults: Mapping[str, Any]) -> vol.Schema:
+    return vol.Schema(
+        {
+            vol.Required(CONF_HOST, default=defaults.get(CONF_HOST, "")): str,
+            vol.Required(CONF_PORT, default=defaults.get(CONF_PORT, DEFAULT_PORT)): vol.All(
+                vol.Coerce(int), vol.Range(min=1, max=65535)
+            ),
+            vol.Required(
+                CONF_UNIT_ID, default=defaults.get(CONF_UNIT_ID, DEFAULT_UNIT_ID)
+            ): vol.All(vol.Coerce(int), vol.Range(min=0, max=247)),
+            vol.Required(CONF_PASSWORD): PASSWORD_SELECTOR,
+        }
+    )
 
-    async def async_step_user(self, user_input=None):
+
+async def _validate(data: Mapping[str, Any]) -> tuple[dict[str, str], dict[str, Any]]:
+    errors: dict[str, str] = {}
+    info: dict[str, Any] = {}
+    try:
+        client = SolaxInstallerClient(
+            data[CONF_HOST], data[CONF_PORT], data[CONF_UNIT_ID], data[CONF_PASSWORD]
+        )
+        info = await client.async_validate()
+    except InvalidPassword:
+        errors["base"] = "invalid_auth"
+    except ModbusError as err:
+        _LOGGER.debug("Connection test failed: %s", err)
+        errors["base"] = "cannot_connect"
+    except Exception:  # noqa: BLE001
+        _LOGGER.exception("Unexpected error during validation")
+        errors["base"] = "unknown"
+    return errors, info
+
+
+class SolaxInstallerConfigFlow(ConfigFlow, domain=DOMAIN):
+    """Handle the config flow."""
+
+    VERSION = 2
+
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         errors: dict[str, str] = {}
-
         if user_input is not None:
-            client = SolaxInstallerClient(
-                self.hass,
-                user_input[CONF_HOST],
-                user_input[CONF_PASSWORD],
-                user_input[CONF_VIEW_ONLY],
-            )
-            try:
-                await client.async_get_all_settings()
-                await self.async_set_unique_id(user_input[CONF_HOST])
+            user_input[CONF_HOST] = user_input[CONF_HOST].strip()
+            errors, info = await _validate(user_input)
+            if not errors:
+                serial = info.get("serial")
+                await self.async_set_unique_id(
+                    serial or f"{user_input[CONF_HOST]}:{user_input[CONF_PORT]}"
+                )
                 self._abort_if_unique_id_configured()
-                return self.async_create_entry(title="Solax Installer", data=user_input)
-            except (ClientError, asyncio.TimeoutError, ValueError):
-                errors["base"] = "cannot_connect"
+                view_only = user_input.pop(CONF_VIEW_ONLY, DEFAULT_VIEW_ONLY)
+                return self.async_create_entry(
+                    title=f"SolaX {serial}" if serial else f"SolaX {user_input[CONF_HOST]}",
+                    data=user_input,
+                    options={CONF_VIEW_ONLY: view_only},
+                )
 
+        schema = _connection_schema(user_input or {}).extend(
+            {vol.Required(CONF_VIEW_ONLY, default=DEFAULT_VIEW_ONLY): bool}
+        )
+        return self.async_show_form(step_id="user", data_schema=schema, errors=errors)
+
+    async def async_step_reauth(self, entry_data: Mapping[str, Any]) -> ConfigFlowResult:
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        entry = self._get_reauth_entry()
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            data = {**entry.data, CONF_PASSWORD: user_input[CONF_PASSWORD]}
+            errors, _ = await _validate(data)
+            if not errors:
+                return self.async_update_reload_and_abort(entry, data=data)
         return self.async_show_form(
-            step_id="user", data_schema=DATA_SCHEMA, errors=errors
+            step_id="reauth_confirm",
+            data_schema=vol.Schema({vol.Required(CONF_PASSWORD): PASSWORD_SELECTOR}),
+            errors=errors,
+        )
+
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        entry = self._get_reconfigure_entry()
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            user_input[CONF_HOST] = user_input[CONF_HOST].strip()
+            errors, info = await _validate(user_input)
+            if not errors:
+                if info.get("serial") and entry.unique_id != info["serial"]:
+                    return self.async_abort(reason="wrong_device")
+                return self.async_update_reload_and_abort(entry, data=user_input)
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=_connection_schema(user_input or entry.data),
+            errors=errors,
         )
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry):
-        return SolaxInstallerOptionsFlow(config_entry)
+    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
+        return SolaxInstallerOptionsFlow()
 
 
-class SolaxInstallerOptionsFlow(config_entries.OptionsFlow):
-    """Options flow to change settings after setup."""
+class SolaxInstallerOptionsFlow(OptionsFlow):
+    """Safety and polling options."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow."""
-        self.config_entry = config_entry
-
-    async def async_step_init(self, user_input=None):
-        errors: dict[str, str] = {}
-
-        host = self.config_entry.options.get(CONF_HOST, self.config_entry.data[CONF_HOST])
-        password = self.config_entry.options.get(
-            CONF_PASSWORD, self.config_entry.data[CONF_PASSWORD]
-        )
-        view_only = self.config_entry.options.get(
-            CONF_VIEW_ONLY, self.config_entry.data.get(CONF_VIEW_ONLY, True)
-        )
-
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         if user_input is not None:
-            host = user_input.get(CONF_HOST, host)
-            password = user_input.get(CONF_PASSWORD, password)
-            view_only = user_input.get(CONF_VIEW_ONLY, view_only)
+            user_input[CONF_SCAN_INTERVAL] = int(user_input[CONF_SCAN_INTERVAL])
+            return self.async_create_entry(data=user_input)
 
-        client = SolaxInstallerClient(self.hass, host, password, view_only)
-
-        if user_input is not None:
-            setting = user_input.pop(CONF_SETTING, None)
-            value = user_input.pop(CONF_VALUE, None)
-            if setting and value:
-                try:
-                    await client.async_set_parameter(setting, value)
-                except PermissionError:
-                    errors["base"] = "view_only"
-                except (ClientError, asyncio.TimeoutError):
-                    errors["base"] = "cannot_connect"
-            if not errors:
-                return self.async_create_entry(title="", data=user_input)
-
-        options = {}
-        try:
-            settings = await client.async_get_all_settings()
-            if not isinstance(settings, dict):
-                raise ValueError
-            options = {
-                f"{SETTING_NAMES.get(key, key)} ({value})": key
-                for key, value in settings.items()
-            }
-        except (ClientError, asyncio.TimeoutError, ValueError):
-            errors.setdefault("base", "cannot_connect")
-
+        options = self.config_entry.options
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(
                 {
                     vol.Required(
-                        CONF_HOST,
-                        default=host,
-                    ): str,
-                    vol.Required(
-                        CONF_PASSWORD,
-                        default=password,
-                    ): str,
-                    vol.Required(
-                        CONF_VIEW_ONLY,
-                        default=view_only,
+                        CONF_VIEW_ONLY, default=options.get(CONF_VIEW_ONLY, DEFAULT_VIEW_ONLY)
                     ): bool,
-                    vol.Optional(CONF_SETTING): vol.In(options),
-                    vol.Optional(CONF_VALUE): str,
+                    vol.Required(
+                        CONF_RELOCK, default=options.get(CONF_RELOCK, DEFAULT_RELOCK)
+                    ): bool,
+                    vol.Required(
+                        CONF_SCAN_INTERVAL,
+                        default=options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+                    ): NumberSelector(
+                        NumberSelectorConfig(
+                            min=10, max=3600, step=1, unit_of_measurement="s",
+                            mode=NumberSelectorMode.BOX,
+                        )
+                    ),
                 }
             ),
-            errors=errors,
         )

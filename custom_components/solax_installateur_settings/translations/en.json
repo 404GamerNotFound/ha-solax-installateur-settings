@@ -1,0 +1,216 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "SolaX Installer Settings",
+        "description": "Connect to the inverter via Modbus TCP. The installer password is required to unlock the installer settings.",
+        "data": {
+          "host": "Host (IP address of the inverter / Modbus TCP gateway)",
+          "port": "Modbus TCP port",
+          "unit_id": "Modbus unit ID",
+          "password": "Installer password",
+          "view_only": "View-only mode (no changes)"
+        },
+        "data_description": {
+          "host": "Same IP as used by the solax_modbus integration.",
+          "password": "Numeric installer password of the inverter (e.g. 2014 for basic or 6868 for advanced settings)."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Installer password",
+        "description": "The inverter rejected the installer password. Please enter it again.",
+        "data": {
+          "password": "Installer password"
+        }
+      },
+      "reconfigure": {
+        "title": "Change connection",
+        "data": {
+          "host": "Host (IP address of the inverter / Modbus TCP gateway)",
+          "port": "Modbus TCP port",
+          "unit_id": "Modbus unit ID",
+          "password": "Installer password"
+        },
+        "data_description": {
+          "host": "Same IP as used by the solax_modbus integration.",
+          "password": "Numeric installer password of the inverter (e.g. 2014 for basic or 6868 for advanced settings)."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to the inverter via Modbus TCP.",
+      "invalid_auth": "The inverter stayed locked – the installer password is wrong.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This inverter is already configured.",
+      "reauth_successful": "Password updated.",
+      "reconfigure_successful": "Connection updated.",
+      "wrong_device": "This is a different inverter (serial number does not match)."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options",
+        "data": {
+          "view_only": "View-only mode (no changes)",
+          "relock_after_write": "Lock the inverter again after each change",
+          "scan_interval": "Polling interval"
+        },
+        "data_description": {
+          "relock_after_write": "Note: locking also blocks writes from other integrations such as solax_modbus."
+        }
+      }
+    }
+  },
+  "entity": {
+    "number": {
+      "export_control_user_limit": {
+        "name": "Feed-in Limit"
+      },
+      "main_breaker_current_limit": {
+        "name": "Main Breaker Current Limit"
+      },
+      "battery_charge_max_current": {
+        "name": "Battery Charge Max Current"
+      },
+      "battery_discharge_max_current": {
+        "name": "Battery Discharge Max Current"
+      },
+      "eps_min_soc": {
+        "name": "EPS Min SoC"
+      }
+    },
+    "select": {
+      "meter_1_direction": {
+        "name": "Meter 1 Direction",
+        "state": {
+          "positive": "Positive",
+          "negative": "Negative"
+        }
+      },
+      "meter_2_direction": {
+        "name": "Meter 2 Direction",
+        "state": {
+          "positive": "Positive",
+          "negative": "Negative"
+        }
+      },
+      "pgrid_bias": {
+        "name": "Grid Bias Direction",
+        "state": {
+          "disabled": "Disabled",
+          "grid": "Grid",
+          "inverter": "Inverter"
+        }
+      },
+      "shadow_fix_pv1": {
+        "name": "Shadow Fix Level PV1 (GMPPT)",
+        "state": {
+          "off": "Off",
+          "low": "Low",
+          "middle": "Middle",
+          "high": "High"
+        }
+      },
+      "shadow_fix_pv2": {
+        "name": "Shadow Fix Level PV2 (GMPPT)",
+        "state": {
+          "off": "Off",
+          "low": "Low",
+          "middle": "Middle",
+          "high": "High"
+        }
+      },
+      "shadow_fix_pv3": {
+        "name": "Shadow Fix Level PV3 (GMPPT)",
+        "state": {
+          "off": "Off",
+          "low": "Low",
+          "middle": "Middle",
+          "high": "High"
+        }
+      }
+    },
+    "sensor": {
+      "lock_state": {
+        "name": "Lock state",
+        "state": {
+          "locked": "Locked",
+          "unlocked": "Unlocked",
+          "unlocked_advanced": "Unlocked (advanced)"
+        }
+      }
+    },
+    "button": {
+      "unlock": {
+        "name": "Unlock with installer password"
+      },
+      "lock": {
+        "name": "Lock settings"
+      }
+    }
+  },
+  "exceptions": {
+    "view_only": {
+      "message": "View-only mode is enabled. Disable it in the integration options to change settings."
+    },
+    "invalid_auth": {
+      "message": "The inverter stayed locked – the installer password is wrong."
+    },
+    "write_failed": {
+      "message": "Writing to the inverter failed: {error}"
+    },
+    "confirm_required": {
+      "message": "Set confirm: true to change installer settings."
+    },
+    "unknown_host": {
+      "message": "Unknown or ambiguous inverter – set the host field."
+    }
+  },
+  "services": {
+    "set_installer_setting": {
+      "name": "Set installer setting",
+      "description": "Unlocks the inverter with the installer password and changes one installer setting.",
+      "fields": {
+        "setting": {
+          "name": "Setting",
+          "description": "Key or name of the setting, e.g. Feed-in Limit."
+        },
+        "value": {
+          "name": "Value",
+          "description": "New value (number or option name)."
+        },
+        "confirm": {
+          "name": "Confirm",
+          "description": "Must be true to apply the change."
+        },
+        "host": {
+          "name": "Host",
+          "description": "Only needed with multiple inverters."
+        }
+      }
+    },
+    "get_installer_settings": {
+      "name": "Get installer settings",
+      "description": "Returns all installer settings and the lock state.",
+      "fields": {
+        "host": {
+          "name": "Host",
+          "description": "Only needed with multiple inverters."
+        }
+      }
+    },
+    "unlock": {
+      "name": "Unlock",
+      "description": "Unlocks the inverter with the stored installer password.",
+      "fields": {
+        "host": {
+          "name": "Host",
+          "description": "Only needed with multiple inverters."
+        }
+      }
+    }
+  }
+}
